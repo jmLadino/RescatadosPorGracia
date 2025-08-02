@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calendario Grupo Pequeño Rescatados por la Gracia</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      padding: 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      margin: 0.5rem 0;
+      color: #0077cc;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .calendar-picker {
+      font-size: 1rem;
+      max-width: 300px;
+    }
+
+    .controls button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .controls button:hover {
+      background-color: #005fa3;
+    }
+
+    .week-range {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin: 1rem 0;
+      color: #333;
+    }
+
+    .calendar {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .day-group {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .date-header {
+      background-color: #0077cc;
+      color: #fff;
+      padding: 0.75rem 1rem;
+      font-weight: bold;
+    }
+
+    .activities {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .activity {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      border-top: 1px solid #eee;
+      align-items: center;
+    }
+
+    .activity:first-child {
+      border-top: none;
+    }
+
+    .activity img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .activity-info {
+      flex: 1;
+    }
+
+    .activity-title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+
+    .activity-description {
+      font-size: 0.9rem;
+      color: #444;
+    }
+
+    .has-activity {
+      background-color: #ffcc00 !important;
+      border-radius: 50%;
+      font-weight: bold;
+      color: black !important;
+    }
+
+    .selected-week {
+      background-color: #66b3ff !important;
+      color: white !important;
+      border-radius: 50%;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .activity {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .activity img {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Calendario de Actividades</h1>
+  <h1>GPS Rescatados por Gracia</h1>
+</header>
+
+<div class="controls">
+  <button onclick="changeWeek(-1)">⬅ Semana anterior</button>
+  <div id="flatpickr" class="calendar-picker"></div>
+  <button onclick="changeWeek(1)">Semana siguiente ➡</button>
+</div>
+
+<div class="week-range" id="weekRange"></div>
+<div class="calendar" id="calendarContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+<script>
+  const activities = [
+    { date: '2025-07-31', title: '20:00 - Junta semanal', description: 'Casa: Ladino-Huenulaf', image: 'Imagenes/casaiglesia.jpg' },
+	{ date: '2025-08-02', title: '09:45 - Iglesia Nuevo Mundo', description: 'https://maps.app.goo.gl/nwdfgzNobz3u61yb9', image: 'Imagenes/LogoIglesia.png' },
+	{ date: '2025-08-23', title: 'Iglesia en Lumaco', description: '- Visita a iglesia en LUMACO. <br>- Almuerzo en Capitán Pastene.<br>- Culto Joven en Capitán Pastene. ', image: 'Imagenes/LogoIglesia.png' }
+  ];
+
+  let currentDate = new Date();
+  const activityDates = activities.map(a => a.date);
+
+  flatpickr("#flatpickr", {
+    defaultDate: currentDate,
+    locale: { ...flatpickr.l10ns.es, firstDayOfWeek: 0 }, // ✅ domingo primero
+    inline: true,
+    disableMobile: true,
+    onChange: function(selectedDates, _, fp) {
+      if (selectedDates.length > 0) {
+        currentDate = selectedDates[0];
+        updateCalendar();
+      }
+      highlightActivityDays(fp);
+      highlightSelectedWeek(fp, currentDate);
+    },
+    onReady: function(_, __, fp) {
+      highlightActivityDays(fp);
+      highlightSelectedWeek(fp, currentDate);
+    },
+    onMonthChange: function(_, __, fp) {
+      highlightActivityDays(fp);
+      highlightSelectedWeek(fp, currentDate);
+    },
+    onYearChange: function(_, __, fp) {
+      highlightActivityDays(fp);
+      highlightSelectedWeek(fp, currentDate);
+    }
+  });
+
+  function highlightActivityDays(fp) {
+    const days = fp.days.childNodes;
+    days.forEach(dayElem => {
+      const dateStr = dayElem.dateObj ? formatDate(dayElem.dateObj) : null;
+      dayElem.classList.remove("has-activity");
+      if (dateStr && activityDates.includes(dateStr)) {
+        dayElem.classList.add("has-activity");
+      }
+    });
+  }
+
+  function highlightSelectedWeek(fp, baseDate) {
+    const start = getStartOfWeek(baseDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+
+    const days = fp.days.childNodes;
+    days.forEach(dayElem => {
+      const date = dayElem.dateObj;
+      dayElem.classList.remove("selected-week");
+      if (date >= start && date <= end) {
+        dayElem.classList.add("selected-week");
+      }
+    });
+  }
+
+  function getStartOfWeek(date) {
+    const d = new Date(date);
+    const day = d.getDay(); // 0 = domingo
+    const diff = d.getDate() - day; // domingo como inicio
+    return new Date(d.setDate(diff));
+  }
+
+  function formatDate(date) {
+    return date.toISOString().split('T')[0];
+  }
+
+  function formatReadableDate(date) {
+    return date.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function formatShortDate(date) {
+    return date.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function updateWeekRange() {
+    const start = getStartOfWeek(currentDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    document.getElementById('weekRange').textContent = 
+      `Semana: ${formatShortDate(start)} – ${formatShortDate(end)}`;
+  }
+
+  function updateCalendar() {
+    const startOfWeek = getStartOfWeek(currentDate);
+    const calendar = document.getElementById('calendarContainer');
+    calendar.innerHTML = '';
+    updateWeekRange();
+
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      const dayStr = formatDate(day);
+      const dayActivities = activities.filter(a => a.date === dayStr);
+
+      if (dayActivities.length > 0) {
+        const group = document.createElement('div');
+        group.className = 'day-group';
+
+        const header = document.createElement('div');
+        header.className = 'date-header';
+        header.textContent = formatReadableDate(day);
+        group.appendChild(header);
+
+        const activityContainer = document.createElement('div');
+        activityContainer.className = 'activities';
+
+        dayActivities.forEach(a => {
+          const act = document.createElement('div');
+          act.className = 'activity';
+          act.innerHTML = `
+            <img src="${a.image}" alt="${a.title}">
+            <div class="activity-info">
+              <div class="activity-title">${a.title}</div>
+              <div class="activity-description">${a.description}</div>
+            </div>
+          `;
+          activityContainer.appendChild(act);
+        });
+
+        group.appendChild(activityContainer);
+        calendar.appendChild(group);
+      }
+    }
+  }
+
+  function changeWeek(offset) {
+    currentDate.setDate(currentDate.getDate() + offset * 7);
+    updateCalendar();
+    const fp = document.querySelector("#flatpickr")._flatpickr;
+    fp.setDate(currentDate, true);
+    highlightActivityDays(fp);
+    highlightSelectedWeek(fp, currentDate);
+  }
+
+  updateCalendar();
+</script>
+
+</body>
+</html>
