@@ -78,44 +78,41 @@
       font-weight: bold;
     }
 
-    .activities {
-      display: flex;
-      flex-direction: column;
-    }
+/* Tarjeta: imagen a la izquierda, texto a la derecha */
+.activity {
+  display: grid;
+  grid-template-columns: 80px 1fr; /* miniatura | contenido */
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #eee;
+  align-items: center;
+}
 
-    .activity {
-      display: flex;
-      gap: 1rem;
-      padding: 1rem;
-      border-top: 1px solid #eee;
-      align-items: center;
-    }
+.activity img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
 
-    .activity:first-child {
-      border-top: none;
-    }
-
-    .activity img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
-    .activity-info {
-      flex: 1;
-    }
-
-    .activity-title {
-      font-size: 1rem;
-      font-weight: bold;
-      margin-bottom: 0.25rem;
-    }
-
-    .activity-description {
-      font-size: 0.9rem;
-      color: #444;
-    }
+/* En móvil: miniatura más pequeña pero sigue a la izquierda */
+@media (max-width: 600px) {
+  .activity {
+    grid-template-columns: 56px 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+  .activity img {
+    width: 56px;
+    height: 56px;
+  }
+  .activity-title {
+    font-size: 1rem;
+  }
+  .activity-description {
+    font-size: 0.9rem;
+  }
+}
 
     .has-activity {
       background-color: #ffcc00 !important;
@@ -131,17 +128,6 @@
       font-weight: bold;
     }
 
-    @media (max-width: 600px) {
-      .activity {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .activity img {
-        width: 100%;
-        height: auto;
-      }
-    }
   </style>
 </head>
 <body>
@@ -165,9 +151,12 @@
 <script>
   const activities = [
     { date: '2025-07-31', title: '20:00 - Junta semanal', description: 'Casa: Ladino-Huenulaf', image: 'Imagenes/CasaIglesia.jpg' },
-	{ date: '2025-08-02', title: '09:45 - Iglesia Nuevo Mundo', description: '<a href="https://www.google.com/maps?q=-38.7064802,-72.5473723" target="_blank">Ver ubicación en Google Maps</a>', image: 'Imagenes/LogoIglesia.png' },
-	{ date: '2025-08-23', title: 'Iglesia en Lumaco', description: '- Visita a iglesia en LUMACO. <br>- Almuerzo en Capitán Pastene.<br>- Culto Joven en Capitán Pastene. ', image: 'Imagenes/LogoIglesia.png' }
+	{ date: '2025-08-02', title: '09:45 - Iglesia Nuevo Mundo', description: 'Dirección: <a href="https://maps.app.goo.gl/GZjX2hrM2eY8m1CCA" target="_blank">Managua Nte. 3491, Temuco</a>', image: 'Imagenes/LogoIglesia.png' },
+	{ date: '2025-08-23', title: 'Iglesia en Lumaco', description: '- Visita a iglesia en LUMACO. <br>- Almuerzo en Capitán Pastene.<br>- Culto Joven en Capitán Pastene. ', image: 'Imagenes/LogoIglesia.png' },
+	{ date: '2025-08-07', title: '20:00 - Junta semanal', description: 'Casa: Biott-Ladino<br>Dirección: <a href="https://maps.app.goo.gl/BUnEzgeXMgVo5SvH7" target="_blank">Diego Portales 278</a>', image: 'Imagenes/CasaIglesia.jpg' }
   ];
+
+
 
   let currentDate = new Date();
   const activityDates = activities.map(a => a.date);
